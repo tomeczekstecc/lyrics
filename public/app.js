@@ -59,13 +59,78 @@ var searchSongs = function (term) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, res.json()];
             case 2:
                 data = _a.sent();
-                showData();
+                showData(data);
                 return [2 /*return*/];
         }
     });
 }); };
 var showData = function (data) {
+    // let output = '';
+    // data.data.forEach((song: any) => {
+    //   output += `
+    //   <li>
+    //     <span><strong>${song.artist.name}</strong> - ${song.title}</span>
+    //     <button class="btn" data-artist ="${song.artist.name}" data-songtitle="${song.title}">Get Lyrics</button>
+    //   </li>
+    //   `;
+    // });
+    // result.innerHTML = `
+    //     <ul class="songs">
+    //       ${output}
+    //     </ul>
+    // `
+    result.innerHTML = "\n      <ul class = 'songs'>\n          " + data.data
+        .map(function (song) {
+        return "\n            <li>\n              <span><strong>" + song.artist.name + "</strong> - " + song.title + "</span>\n              <button class=\"btn\" data-artist =\"" + song.artist.name + "\" data-songtitle=\"" + song.title + "\">Get Lyrics</button>\n            </li>\n              ";
+    })
+        .join('') + "\n      </ul>\n  ";
+    if (data.prev || data.next) {
+        more.innerHTML = "\n          " + (data.prev
+            ? "<button class=\"btn\" onClick = \"getMoreSongs('" + data.prev + "')\">Prev</button>"
+            : "") + "\n\n          " + (data.next
+            ? "<button class=\"btn\" onClick = \"getMoreSongs('" + data.next + "')\">Next</button>"
+            : "") + "\n      ";
+    }
+    else {
+        more.innerHTML = '';
+    }
 };
+function getLyrics(artist, songTitle) {
+    return __awaiter(this, void 0, void 0, function () {
+        var res, data, lyrics;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, fetch(apiUrl + "/v1/" + artist + "/" + songTitle)];
+                case 1:
+                    res = _a.sent();
+                    return [4 /*yield*/, res.json()];
+                case 2:
+                    data = _a.sent();
+                    lyrics = data.lyrics.replace(/(\r\n|\r|\n)/g, '<br>');
+                    result.innerHTML = "\n  <h2><strong>" + artist + " - </strong> " + songTitle + "</h2>\n  <span>" + lyrics + "</span>\n  ";
+                    more.innerHTML = '';
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function getMoreSongs(url) {
+    return __awaiter(this, void 0, void 0, function () {
+        var res, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, fetch("https://cors-anywhere.herokuapp.com/" + url)];
+                case 1:
+                    res = _a.sent();
+                    return [4 /*yield*/, res.json()];
+                case 2:
+                    data = _a.sent();
+                    showData(data);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
 form.addEventListener('submit', function (e) {
     e.preventDefault();
     var searchTerm = search.value.trim();
@@ -73,4 +138,12 @@ form.addEventListener('submit', function (e) {
         alert('Please type some text ...');
     }
     searchSongs(searchTerm);
+});
+result.addEventListener('click', function (e) {
+    var clickedEl = e.target;
+    if (clickedEl.tagName == 'BUTTON') {
+        var artist = clickedEl.getAttribute('data-artist');
+        var songTitle = clickedEl.getAttribute('data-songtitle');
+        getLyrics(artist, songTitle);
+    }
 });
